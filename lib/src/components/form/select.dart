@@ -36,6 +36,13 @@ class SelectTheme {
   /// Whether to automatically close the popover after selection.
   final bool? autoClosePopover;
 
+  /// The button style to apply to the select trigger.
+  ///
+  /// When set, this style will be used instead of determining the style
+  /// based on the [filled] property. This allows for more granular control
+  /// over the select appearance through theme configuration.
+  final AbstractButtonStyle? style;
+
   /// Creates a select theme.
   const SelectTheme({
     this.popupConstraints,
@@ -46,6 +53,7 @@ class SelectTheme {
     this.disableHoverEffect,
     this.canUnselect,
     this.autoClosePopover,
+    this.style,
   });
 
   /// Creates a copy of this theme with the given fields replaced.
@@ -58,6 +66,7 @@ class SelectTheme {
     ValueGetter<bool?>? disableHoverEffect,
     ValueGetter<bool?>? canUnselect,
     ValueGetter<bool?>? autoClosePopover,
+    ValueGetter<AbstractButtonStyle?>? style,
   }) {
     return SelectTheme(
       popupConstraints:
@@ -75,6 +84,7 @@ class SelectTheme {
       canUnselect: canUnselect == null ? this.canUnselect : canUnselect(),
       autoClosePopover:
           autoClosePopover == null ? this.autoClosePopover : autoClosePopover(),
+      style: style == null ? this.style : style(),
     );
   }
 
@@ -88,7 +98,8 @@ class SelectTheme {
         other.padding == padding &&
         other.disableHoverEffect == disableHoverEffect &&
         other.canUnselect == canUnselect &&
-        other.autoClosePopover == autoClosePopover;
+        other.autoClosePopover == autoClosePopover &&
+        other.style == style;
   }
 
   @override
@@ -101,6 +112,7 @@ class SelectTheme {
         disableHoverEffect,
         canUnselect,
         autoClosePopover,
+        style,
       );
 }
 
@@ -221,6 +233,8 @@ class ControlledSelect<T> extends StatelessWidget
   final SelectValueSelectionPredicate<T>? valueSelectionPredicate;
   @override
   final Predicate<T>? showValuePredicate;
+  @override
+  final AbstractButtonStyle? style;
 
   /// Creates a [ControlledSelect].
   ///
@@ -246,6 +260,7 @@ class ControlledSelect<T> extends StatelessWidget
   /// - [disableHoverEffect] (bool, default: false): disable item hover effects
   /// - [canUnselect] (bool, default: false): allow deselecting current item
   /// - [autoClosePopover] (bool, default: true): close popup after selection
+  /// - [style] (AbstractButtonStyle?, optional): button style for the select trigger, overrides [filled] when set
   /// - [popup] (SelectPopupBuilder, required): builder for popup content
   /// - [itemBuilder] (`SelectItemBuilder<T>`, required): builder for individual items
   /// - [valueSelectionHandler] (`SelectValueSelectionHandler<T>?`, optional): custom selection logic
@@ -280,12 +295,27 @@ class ControlledSelect<T> extends StatelessWidget
     this.disableHoverEffect = false,
     this.canUnselect = false,
     this.autoClosePopover = true,
+    this.style,
     required this.popup,
     required this.itemBuilder,
     this.valueSelectionHandler,
     this.valueSelectionPredicate,
     this.showValuePredicate,
-  });
+  })  : assert(
+          style == null || filled == false,
+          'Cannot use filled when style is set. '
+          'The style property takes precedence over filled.',
+        ),
+        assert(
+          style == null || borderRadius == null,
+          'Cannot use borderRadius when style is set. '
+          'The style property takes precedence over borderRadius.',
+        ),
+        assert(
+          style == null || padding == null,
+          'Cannot use padding when style is set. '
+          'The style property takes precedence over padding.',
+        );
 
   @override
   Widget build(BuildContext context) {
@@ -307,6 +337,7 @@ class ControlledSelect<T> extends StatelessWidget
           disableHoverEffect: disableHoverEffect,
           canUnselect: canUnselect,
           autoClosePopover: autoClosePopover,
+          style: style,
           enabled: data.enabled,
           itemBuilder: itemBuilder,
           valueSelectionHandler: valueSelectionHandler,
@@ -448,6 +479,8 @@ class ControlledMultiSelect<T> extends StatelessWidget
 
   /// Builder for rendering individual items in multi-select mode.
   final SelectValueBuilder<T> multiItemBuilder;
+  @override
+  final AbstractButtonStyle? style;
 
   /// Creates a [ControlledMultiSelect].
   ///
@@ -473,6 +506,7 @@ class ControlledMultiSelect<T> extends StatelessWidget
   /// - [disableHoverEffect] (bool, default: false): disable item hover effects
   /// - [canUnselect] (bool, default: false): allow deselecting all items
   /// - [autoClosePopover] (bool, default: false): close popup after each selection
+  /// - [style] (AbstractButtonStyle?, optional): button style for the select trigger, overrides [filled] when set
   /// - [popup] (SelectPopupBuilder, required): builder for popup content
   /// - [itemBuilder] (`SelectItemBuilder<T>`, required): builder for individual items
   /// - [multiItemBuilder] (`SelectValueBuilder<T>`, required): builder for selected items display
@@ -513,12 +547,28 @@ class ControlledMultiSelect<T> extends StatelessWidget
     this.disableHoverEffect = false,
     this.canUnselect = true,
     this.autoClosePopover = false,
+    this.style,
     this.showValuePredicate,
     required this.popup,
     required SelectValueBuilder<T> itemBuilder,
     this.valueSelectionHandler,
     this.valueSelectionPredicate,
-  }) : multiItemBuilder = itemBuilder;
+  })  : assert(
+          style == null || filled == false,
+          'Cannot use filled when style is set. '
+          'The style property takes precedence over filled.',
+        ),
+        assert(
+          style == null || borderRadius == null,
+          'Cannot use borderRadius when style is set. '
+          'The style property takes precedence over borderRadius.',
+        ),
+        assert(
+          style == null || padding == null,
+          'Cannot use padding when style is set. '
+          'The style property takes precedence over padding.',
+        ),
+        multiItemBuilder = itemBuilder;
 
   @override
   Widget build(BuildContext context) {
@@ -540,6 +590,7 @@ class ControlledMultiSelect<T> extends StatelessWidget
       disableHoverEffect: disableHoverEffect,
       canUnselect: canUnselect,
       autoClosePopover: autoClosePopover,
+      style: style,
       popup: popup,
       itemBuilder: itemBuilder,
       showValuePredicate: (test) {
@@ -862,6 +913,13 @@ mixin SelectBase<T> {
   /// Whether popup auto-closes after selection.
   bool? get autoClosePopover;
 
+  /// The button style to apply to the select trigger.
+  ///
+  /// When set, this style will be used instead of determining the style
+  /// based on the [filled] property. This allows for more granular control
+  /// over the select appearance.
+  AbstractButtonStyle? get style;
+
   /// Builder for popup content.
   SelectPopupBuilder get popup;
 
@@ -971,6 +1029,8 @@ class Select<T> extends StatefulWidget with SelectBase<T> {
   final SelectValueSelectionPredicate<T>? valueSelectionPredicate;
   @override
   final Predicate<T>? showValuePredicate;
+  @override
+  final AbstractButtonStyle? style;
 
   /// Creates a single-selection dropdown widget.
   ///
@@ -1017,13 +1077,28 @@ class Select<T> extends StatefulWidget with SelectBase<T> {
     this.popoverAnchorAlignment,
     this.canUnselect = false,
     this.autoClosePopover = true,
+    this.style,
     this.enabled,
     this.valueSelectionHandler,
     this.valueSelectionPredicate,
     this.showValuePredicate,
     required this.popup,
     required this.itemBuilder,
-  });
+  })  : assert(
+          style == null || filled == false,
+          'Cannot use filled when style is set. '
+          'The style property takes precedence over filled.',
+        ),
+        assert(
+          style == null || borderRadius == null,
+          'Cannot use borderRadius when style is set. '
+          'The style property takes precedence over borderRadius.',
+        ),
+        assert(
+          style == null || padding == null,
+          'Cannot use padding when style is set. '
+          'The style property takes precedence over padding.',
+        );
 
   @override
   SelectState<T> createState() => SelectState<T>();
@@ -1104,6 +1179,12 @@ class SelectState<T> extends State<Select<T>>
         widgetValue: widget.autoClosePopover,
         themeValue: _theme?.autoClosePopover,
         defaultValue: true,
+      );
+
+  AbstractButtonStyle? get _style => styleValue(
+        widgetValue: widget.style,
+        themeValue: _theme?.style,
+        defaultValue: null,
       );
 
   @override
@@ -1208,13 +1289,15 @@ class SelectState<T> extends State<Select<T>>
             enabled: enabled,
             disableHoverEffect: _disableHoverEffect,
             focusNode: _focusNode,
-            style: (widget.filled
-                    ? ButtonVariance.secondary
-                    : ButtonVariance.outline)
-                .copyWith(
-              decoration: _borderRadius != null ? _overrideBorderRadius : null,
-              padding: _padding != null ? _overridePadding : null,
-            ),
+            style: _style ??
+                (widget.filled
+                        ? ButtonVariance.secondary
+                        : ButtonVariance.outline)
+                    .copyWith(
+                  decoration:
+                      _borderRadius != null ? _overrideBorderRadius : null,
+                  padding: _padding != null ? _overridePadding : null,
+                ),
             onPressed: widget.onChanged == null
                 ? null
                 : () {
@@ -1467,6 +1550,9 @@ class MultiSelect<T> extends StatelessWidget with SelectBase<Iterable<T>> {
   @override
   final Predicate<Iterable<T>>? showValuePredicate;
 
+  @override
+  final AbstractButtonStyle? style;
+
   /// Creates a multi-selection dropdown widget.
   ///
   /// Allows selecting multiple items from a dropdown list, displaying them as chips.
@@ -1512,13 +1598,29 @@ class MultiSelect<T> extends StatelessWidget with SelectBase<Iterable<T>> {
     this.popoverAnchorAlignment,
     this.canUnselect = true,
     this.autoClosePopover = false,
+    this.style,
     this.enabled,
     this.valueSelectionHandler,
     this.valueSelectionPredicate,
     this.showValuePredicate,
     required this.popup,
     required SelectValueBuilder<T> itemBuilder,
-  }) : multiItemBuilder = itemBuilder;
+  })  : assert(
+          style == null || filled == false,
+          'Cannot use filled when style is set. '
+          'The style property takes precedence over filled.',
+        ),
+        assert(
+          style == null || borderRadius == null,
+          'Cannot use borderRadius when style is set. '
+          'The style property takes precedence over borderRadius.',
+        ),
+        assert(
+          style == null || padding == null,
+          'Cannot use padding when style is set. '
+          'The style property takes precedence over padding.',
+        ),
+        multiItemBuilder = itemBuilder;
 
   static Widget _buildItem<T>(
     SelectValueBuilder<T> multiItemBuilder,
@@ -1555,6 +1657,7 @@ class MultiSelect<T> extends StatelessWidget with SelectBase<Iterable<T>> {
       disableHoverEffect: disableHoverEffect,
       canUnselect: canUnselect,
       autoClosePopover: autoClosePopover ?? true,
+      style: style,
       enabled: enabled,
       showValuePredicate: (test) {
         return test.isNotEmpty && (showValuePredicate?.call(test) ?? true);
